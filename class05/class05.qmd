@@ -1,0 +1,203 @@
+---
+title: "Class 5: Data Viz with ggplot"
+author: "Jennifer Thai (PID: A17893762)"
+format: pdf
+---
+
+Today we are exploring the **ggplot** package and how to make nice figures in R.
+
+There are lots of ways to make figures and plot in R. These include:
+
+- so called "base" R
+- and add on packages like **ggplot2**
+
+Here is a simple "base" R plot.
+
+```{r}
+head(cars)
+```
+
+We can simply pass to the `plot()` function.
+
+```{r}
+plot(cars)
+```
+
+> Key-point: Base R is quick but not so nice looking in some folks eyes
+
+Let's see how we can plot this with **glotplot2**...
+
+1st I need to install this add-on package. For this we use the `install.packages()` function - **WE DO THIS IN THE CONSOLE, NOT our report**. This is a one time only deal.
+
+2nd We need to load the package with the `library()` function every time we want to use it.
+
+
+```{r}
+library(ggplot2)
+ggplot(cars)
+```
+
+Every ggplot is composed of at least 3 layers:
+
+- **data** (i.e. a data.frame with the things you want to plot)
+- aesthetics **aes()** that map the columns of data to your plot features (i.e. aesthetics)
+- geoms like **geom_point()** that srt how the plot appears
+
+```{r}
+ggplot(cars) +
+  aes(x=speed, y=dist) +
+  geom_point()
+```
+
+> Key point: For simple "canned" graphs, base R is quicker, but as things get more custom and elaborate, then ggplot wins out...
+
+Let's add more layers to our ggplot
+
+Add a line showing the relationship between x and y
+Add a title
+Add custom axis labels "Speed (MPH)" and "Distance(ft)"
+Change the theme...
+
+```{r}
+ggplot(cars) +
+  aes(x=speed, y=dist) +
+  geom_point() +
+  geom_smooth(method="lm", se=FALSE) +
+  labs(title = "Silly plot of Speed vs Stopping distance", 
+       x = "Speed (MPH)", 
+       y = "Distance (ft)") +
+  theme_bw()
+```
+
+## Going further
+
+Read some gene expression data
+
+```{r}
+url <- "https://bioboot.github.io/bimm143_S20/class-material/up_down_expression.txt"
+genes <- read.delim(url)
+
+head(genes)
+```
+
+> Q1. How many genes are in this wee dataset?
+
+```{r}
+nrow(genes)
+```
+```{r}
+ncol(genes)
+```
+
+> Q2. How many "up" regulated genes are there?
+
+```{r}
+sum( genes$State == "up" )
+```
+
+A useful function for counting up occurrences of things in a vector is the `table()` function.
+
+
+```{r}
+table( genes$State )
+```
+
+Make a v1 figure
+
+```{r}
+p <- ggplot(genes) +
+  aes(x=Condition1, 
+      y=Condition2,
+      col=State) +
+  geom_point() 
+  
+p
+```
+
+```{r}
+p + scale_colour_manual(values =c("blue", "gray", "red")) +
+  labs(title="Expression changes upon drug treatment",
+       x= "Control (no drug)", 
+       y= "Treatment (with drug)") +
+  theme_bw()
+```
+
+
+## More Plotting 
+
+Read in the gapminder dataset
+
+```{r}
+# File location online
+url <- "https://raw.githubusercontent.com/jennybc/gapminder/master/inst/extdata/gapminder.tsv"
+
+gapminder <- read.delim(url)
+```
+
+Let's have a wee peak
+
+```{r}
+head(gapminder, 3)
+```
+
+```{r}
+tail(gapminder, 3)
+```
+
+> Q4. How many different country values are in this dataset?
+
+```{r}
+length( table(gapminder$country) )
+```
+> Q5. How many different continent values are in this dataset?
+
+```{r}
+length( unique(gapminder$continent) )
+```
+```{r}
+ggplot(gapminder) +
+  aes(gdpPercap, lifeExp, col= continent) +
+  geom_point()
+```
+
+```{r}
+ggplot(gapminder) +
+  aes(gdpPercap, lifeExp, col= continent, label= country) +
+  geom_point() +
+  geom_text()
+```
+
+I can use the **ggrepl** package to make more sensible labels here.
+```{r}
+library(ggrepel)
+
+ggplot(gapminder) +
+  aes(gdpPercap, lifeExp, col= continent, label= country) +
+  geom_point() +
+  geom_text_repel()
+```
+
+I want a separate panel per continent
+
+```{r}
+ggplot(gapminder) +
+  aes(gdpPercap, lifeExp, col= continent, label= country) +
+  geom_point() +
+  facet_wrap(~continent)
+```
+
+
+ggplot2 offers several advantages over base R plots:
+
+The main advantages of ggplot over base R plot are:
+
+1. **Layered grammar**: ggplot2 builds plots by adding layers (data, aesthetics, geoms, themes), making complex plots easier to construct and modify step-by-step [[1]](https://drive.google.com/file/d/1BYSWJLROqxA1YpuDhJkzUolhiZqiOOKg/view?usp=drivesdk), [[2]](https://drive.google.com/file/d/1tFqKg9_nhVMmKYfiM1CQKDS2PmPwLh8n/view?usp=drivesdk), [[3]](https://drive.google.com/file/d/1Clw2_EJ_hY3USNwObiPnxpIQIfirxfW0/view?usp=drivesdk).
+2. **Consistency**: The same syntax and logic apply across different plot types, reducing the need to learn new functions for each visualization [[1]](https://drive.google.com/file/d/1BYSWJLROqxA1YpuDhJkzUolhiZqiOOKg/view?usp=drivesdk), [[2]](https://drive.google.com/file/d/1tFqKg9_nhVMmKYfiM1CQKDS2PmPwLh8n/view?usp=drivesdk), [[3]](https://drive.google.com/file/d/1Clw2_EJ_hY3USNwObiPnxpIQIfirxfW0/view?usp=drivesdk).
+3. **Publication-quality visuals**: ggplot2 produces attractive, polished figures suitable for scientific publications with sensible defaults [[1]](https://drive.google.com/file/d/1BYSWJLROqxA1YpuDhJkzUolhiZqiOOKg/view?usp=drivesdk), [[2]](https://drive.google.com/file/d/1tFqKg9_nhVMmKYfiM1CQKDS2PmPwLh8n/view?usp=drivesdk), [[3]](https://drive.google.com/file/d/1Clw2_EJ_hY3USNwObiPnxpIQIfirxfW0/view?usp=drivesdk).
+4. **Customization**: It is easier to customize legends, colors, themes, and annotations, and to combine multiple plots [[1]](https://drive.google.com/file/d/1BYSWJLROqxA1YpuDhJkzUolhiZqiOOKg/view?usp=drivesdk).
+5. **Data mapping**: Direct mapping of data columns to visual aesthetics (color, size, shape) is built-in and intuitive [[2]](https://drive.google.com/file/d/1tFqKg9_nhVMmKYfiM1CQKDS2PmPwLh8n/view?usp=drivesdk), [[3]](https://drive.google.com/file/d/1Clw2_EJ_hY3USNwObiPnxpIQIfirxfW0/view?usp=drivesdk).
+6. **Reproducibility**: ggplot2 code is scriptable and reproducible, making it easy to regenerate or update figures [[1]](https://drive.google.com/file/d/1BYSWJLROqxA1YpuDhJkzUolhiZqiOOKg/view?usp=drivesdk), [[2]](https://drive.google.com/file/d/1tFqKg9_nhVMmKYfiM1CQKDS2PmPwLh8n/view?usp=drivesdk).
+
+Base R plots are quick for simple, exploratory graphics, but become fiddly and time-consuming for refined, complex, or publication-ready figures [[1]](https://drive.google.com/file/d/1BYSWJLROqxA1YpuDhJkzUolhiZqiOOKg/view?usp=drivesdk), [[2]](https://drive.google.com/file/d/1tFqKg9_nhVMmKYfiM1CQKDS2PmPwLh8n/view?usp=drivesdk), [[3]](https://drive.google.com/file/d/1Clw2_EJ_hY3USNwObiPnxpIQIfirxfW0/view?usp=drivesdk), [[5]](https://drive.google.com/file/d/15xXaaIcCWOc_x1gJLdySWOd_sfMXTiaw/view?usp=drivesdk), [[4]](https://drive.google.com/file/d/1FDBbIi2Rlw2In9mClB7Mub8oUPgx6y8h/view?usp=drivesdk). 
+
+Which of these advantages do you think is most important for your work?
