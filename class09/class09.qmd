@@ -1,7 +1,8 @@
 ---
 title: "Class 09: Structural Bioinformatics (pt. 1)"
 author: "Jennifer Thai (PID: A17893762)"
-format: html
+format: gfm
+prefer-html: true
 ---
 
 ## The PDB Database
