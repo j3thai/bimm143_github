@@ -1,7 +1,7 @@
 ---
 title: "Class 11: Structural Bioinformatics pt.2"
 author: "Jennifer Thai (PID: A17893762)"
-format: pdf
+format: gfm
 toc: TRUE
 ---
 
