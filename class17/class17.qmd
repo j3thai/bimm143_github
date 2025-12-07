@@ -1,0 +1,279 @@
+---
+title: "class17"
+author: "Jennifer Thai (PID: A17893762)"
+format: gfm
+---
+
+# Section 1: Proportion of G/G in a population
+
+Downloaded a CSV files from Ensemble < https://useast.ensembl.org/Homo_sapiens/Variation/Sample?db=core;r=17:39800098-39990099;v=rs8067378;vdb=variation;vf=959672880;sample=%20HG00109 > 
+
+Here we read this CSV file
+
+```{r}
+mxl <- read.csv("373531-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378.csv")
+
+head(mxl)
+```
+
+```{r}
+table(mxl$Genotype..forward.strand.)
+```
+
+```{r}
+table(mxl$Genotype..forward.strand.)/ nrow(mxl) * 100
+```
+
+Now let's look at at different population. I picked the GBR.
+
+```{r}
+gbr <- read.csv("373522-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378.csv")
+
+head(gbr)
+```
+
+Find proportion of G|G
+
+```{r}
+round( table(gbr$Genotype..forward.strand.) / nrow(gbr) * 100, 2 )
+```
+
+This variant that is associated with childhood asthma is more frequent in the GBR population than the MKL population.
+
+Let's now dig into this further.
+
+
+
+
+
+```{r}
+library(bio3d)
+
+```
+```{r}
+aln <- read.fasta("muscle-I20251201-001146-0795-58502801-p1m.aln-clustalw(seaview)")
+```
+
+```{r}
+id_matrix <- seqidentity(aln$ali) * 100
+```
+
+```{r}
+library(ggplot2)
+library(reshape2)
+
+id_long <- melt(id_matrix)
+colnames(id_long) <- c("Seq1", "Seq2", "Identity")
+```
+
+```{r}
+ggplot(id_long, aes(x=Seq1, y=Seq2, fill=Identity)) +
+  geom_tile() +
+  scale_fill_gradient(low="white", high="blue") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle=45, hjust=1))
+```
+
+```{r}
+seq_id <- seqidentity(aln)
+print(seq_id)
+```
+
+```{r}
+library(pheatmap)
+
+seq_names <- rownames(aln$ali)
+rownames(id_matrix) <- seq_names
+colnames(id_matrix) <- seq_names
+
+pheatmap(seq_id,
+         labels_row = c("Channel catfish", "Human_BB", "Black bullhead", "Bony fishes1", "Ray-finned fishes1", "Ray-finned fishes2", "Bony fishes2", "North African catfish"),
+         labels_col = c("Channel catfish", "Human_BB", "Black bullhead", "Bony fishes1", "Ray-finned fishes1", "Ray-finned fishes2", "Bony fishes2", "North African catfish"),
+         clustering_distance_rows = "euclidean",
+         clustering_distance_cols = "euclidean",
+         clustering_method = "complete",
+         display_numbers = FALSE,
+         color = colorRampPalette(c("yellow","orange","red"))(100),
+         fontsize_row = 10,
+         fontsize_col = 10,
+         main = "Sequence Identity Heatmap")
+```
+
+
+
+
+
+
+
+```{r}
+consensus_seq <- consensus(aln)
+```
+
+
+```{r}
+library(bio3d)
+
+class(aln)
+
+seq_id <- seqidentity(aln$ali)  
+diag(seq_id) <- NA            
+avg_identity <- rowMeans(seq_id, na.rm = TRUE)
+
+best_seq_index <- which.max(avg_identity)
+
+query_seq <- aln$ali[best_seq_index, ]             
+query_seq_string <- paste(query_seq, collapse="")  
+
+
+query_seq_string <- gsub("-", "", query_seq_string)
+blast_results <- blast.pdb(query_seq_string)
+
+str(blast_results)
+```
+
+```{r}
+# Use the hits data frame
+hits_df <- blast_results$hits
+
+# Keep only the first occurrence of each unique PDB ID
+unique_hits <- hits_df[!duplicated(hits_df$pdb.id), ]
+
+# Sort by E-value (smallest first)
+top_hits <- unique_hits[order(unique_hits$e.value), ][1:3, ]
+```
+
+```{r}
+str(unique_hits$e.value)
+```
+
+```{r}
+query_seq_string <- gsub("-", "", as.character(query_seq$seq))
+
+```
+
+
+```{r}
+library(bio3d)
+
+b <- read.fasta("seqdump.txt")
+
+# Suppose seq_id is your sequence identity matrix
+avg_identity <- rowMeans(seq_id)        # average identity for each sequence
+best_seq_index <- which.max(avg_identity)  # sequence most similar to all others
+
+# Extract sequence and remove gaps
+query_seq <- b[[best_seq_index]]$seq
+query_seq_string <- paste(query_seq, collapse = "")
+query_seq_string <- gsub("-", "", query_seq_string)
+
+# Check sequence
+substr(query_seq_string, 1, 60)
+
+```
+
+```{r}
+str(seq_id)
+seq_id[is.na(seq_id)] <- 0  # or use another appropriate value
+str(seq_id)
+```
+
+```{r}
+avg_identity <- rowMeans(seq_id, na.rm = TRUE)
+avg_identity
+
+best_seq_index <- which.max(avg_identity)
+best_seq_index
+
+# alignment is a list of sequences
+# Check length
+length(b)
+
+# Extract the best sequence
+query_seq <- b[[best_seq_index]]$seq
+query_seq_string <- paste(query_seq, collapse = "")
+query_seq_string <- gsub("-", "", query_seq_string)
+
+# View first 60 residues
+substr(query_seq_string, 1, 60)
+
+
+```
+
+```{r}
+best_seq_index <- which.max(avg_identity)
+
+# Check the index
+best_seq_index
+
+if(length(best_seq_index) == 1 && best_seq_index <= length(b)) {
+  query_seq <- b[[best_seq_index]]$seq
+  query_seq_string <- paste(query_seq, collapse = "")
+  query_seq_string <- gsub("-", "", query_seq_string)
+} else {
+  stop("Error: best_seq_index is invalid. Check your seq_id matrix and alignment.")
+}
+
+substr(query_seq_string, 1, 60)  # view first 60 residues
+
+
+```
+
+
+```{r}
+library(bio3d)
+
+alignment <- read.fasta("seqdump.txt")
+n_seq <- length(alignment)
+if(n_seq < 1) stop("No sequences found in the alignment.")
+
+# Convert alignment to a matrix of characters
+seq_matrix <- t(sapply(alignment, function(x) {
+  if(is.list(x)) x$seq else x
+}))
+
+seq_matrix <- t(sapply(alignment, function(x) {
+  seq_vec <- if(is.list(x)) x$seq else x
+  if(length(seq_vec) != seq_lengths[1]) {
+    stop("All sequences must be the same length for seqidentity()")
+  }
+  seq_vec
+}))
+
+seq_id <- seqidentity(seq_matrix)
+
+avg_identity <- rowMeans(seq_id, na.rm = TRUE)
+best_seq_index <- which.max(avg_identity)
+
+# Safety check
+if(length(best_seq_index) != 1 || best_seq_index > n_seq) {
+  stop("Invalid best_seq_index. Check seq_id matrix and alignment.")
+}
+
+# Extract sequence
+query_seq <- if(is.list(alignment[[best_seq_index]])) {
+  alignment[[best_seq_index]]$seq
+} else {
+  alignment[[best_seq_index]]
+}
+
+# Convert to string and remove gaps
+query_seq_string <- paste(query_seq, collapse = "")
+query_seq_string <- gsub("-", "", query_seq_string)
+
+cat("Representative sequence (first 60 residues):\n")
+cat(substr(query_seq_string, 1, 60), "\n")
+cat("Sequence length:", nchar(query_seq_string), "\n")
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
