@@ -236,13 +236,9 @@ head(specimen)
     5                            14         Blood     5
     6                            30         Blood     6
 
-We need to “join” or link these tables with the `subject` table so we
-can begin to analyze this data and know who a given Ab sample was
-collected for and when.
-
-> Q9. Complete the code to join specimen and subject tables to make a
-> new merged data frame containing all specimen records along with their
-> associated subject details:
+> Q7. Using this approach determine (i) the average age of wP
+> individuals, (ii) the average age of aP individuals; and (iii) are
+> they significantly different?
 
 ``` r
 library(dplyr)
@@ -260,6 +256,57 @@ library(dplyr)
         intersect, setdiff, setequal, union
 
 ``` r
+library(lubridate)
+```
+
+
+    Attaching package: 'lubridate'
+
+    The following objects are masked from 'package:base':
+
+        date, intersect, setdiff, union
+
+``` r
+subject$dob <- ymd(subject$year_of_birth)
+subject$age <- today() - subject$dob
+
+
+ap <- subject %>% filter(infancy_vac == "aP")
+round(summary(time_length(ap$age, "years")))
+```
+
+       Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+         23      27      28      28      29      35 
+
+``` r
+wp <- subject %>% filter(infancy_vac == "wP")
+round( summary( time_length( wp$age, "years" ) ) )
+```
+
+       Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+         23      33      35      37      40      58 
+
+> Q8. Determine the age of all individuals at time of boost?
+
+``` r
+int <- ymd(subject$date_of_boost) - ymd(subject$year_of_birth)
+age_at_boost <- time_length(int, "year")
+head(age_at_boost)
+```
+
+    [1] 30.69678 51.07461 33.77413 28.65982 25.65914 28.77481
+
+We need to “join” or link these tables with the `subject` table so we
+can begin to analyze this data and know who a given Ab sample was
+collected for and when.
+
+> Q9. Complete the code to join specimen and subject tables to make a
+> new merged data frame containing all specimen records along with their
+> associated subject details:
+
+``` r
+library(dplyr)
+
 meta <- inner_join(subject, specimen)
 ```
 
@@ -276,13 +323,13 @@ head(meta)
     4          1          wP         Female Not Hispanic or Latino White
     5          1          wP         Female Not Hispanic or Latino White
     6          1          wP         Female Not Hispanic or Latino White
-      year_of_birth date_of_boost      dataset specimen_id
-    1    1986-01-01    2016-09-12 2020_dataset           1
-    2    1986-01-01    2016-09-12 2020_dataset           2
-    3    1986-01-01    2016-09-12 2020_dataset           3
-    4    1986-01-01    2016-09-12 2020_dataset           4
-    5    1986-01-01    2016-09-12 2020_dataset           5
-    6    1986-01-01    2016-09-12 2020_dataset           6
+      year_of_birth date_of_boost      dataset        dob        age specimen_id
+    1    1986-01-01    2016-09-12 2020_dataset 1986-01-01 14585 days           1
+    2    1986-01-01    2016-09-12 2020_dataset 1986-01-01 14585 days           2
+    3    1986-01-01    2016-09-12 2020_dataset 1986-01-01 14585 days           3
+    4    1986-01-01    2016-09-12 2020_dataset 1986-01-01 14585 days           4
+    5    1986-01-01    2016-09-12 2020_dataset 1986-01-01 14585 days           5
+    6    1986-01-01    2016-09-12 2020_dataset 1986-01-01 14585 days           6
       actual_day_relative_to_boost planned_day_relative_to_boost specimen_type
     1                           -3                             0         Blood
     2                            1                             1         Blood
@@ -322,13 +369,13 @@ head(ab_data)
     4          1          wP         Female Not Hispanic or Latino White
     5          1          wP         Female Not Hispanic or Latino White
     6          1          wP         Female Not Hispanic or Latino White
-      year_of_birth date_of_boost      dataset specimen_id
-    1    1986-01-01    2016-09-12 2020_dataset           1
-    2    1986-01-01    2016-09-12 2020_dataset           1
-    3    1986-01-01    2016-09-12 2020_dataset           1
-    4    1986-01-01    2016-09-12 2020_dataset           1
-    5    1986-01-01    2016-09-12 2020_dataset           1
-    6    1986-01-01    2016-09-12 2020_dataset           1
+      year_of_birth date_of_boost      dataset        dob        age specimen_id
+    1    1986-01-01    2016-09-12 2020_dataset 1986-01-01 14585 days           1
+    2    1986-01-01    2016-09-12 2020_dataset 1986-01-01 14585 days           1
+    3    1986-01-01    2016-09-12 2020_dataset 1986-01-01 14585 days           1
+    4    1986-01-01    2016-09-12 2020_dataset 1986-01-01 14585 days           1
+    5    1986-01-01    2016-09-12 2020_dataset 1986-01-01 14585 days           1
+    6    1986-01-01    2016-09-12 2020_dataset 1986-01-01 14585 days           1
       actual_day_relative_to_boost planned_day_relative_to_boost specimen_type
     1                           -3                             0         Blood
     2                           -3                             0         Blood
@@ -397,7 +444,7 @@ ggplot(ab_data) +
     Warning: Removed 1 row containing non-finite outside the scale range
     (`stat_boxplot()`).
 
-![](class19_files/figure-commonmark/unnamed-chunk-18-1.png)
+![](class19_files/figure-commonmark/unnamed-chunk-21-1.png)
 
 > Q12. What are the different \$dataset values in abdata and what do you
 > notice about the number of rows for the most “recent” dataset?
@@ -429,7 +476,7 @@ ggplot(igg) +
   geom_boxplot()
 ```
 
-![](class19_files/figure-commonmark/unnamed-chunk-21-1.png)
+![](class19_files/figure-commonmark/unnamed-chunk-24-1.png)
 
 ``` r
 ggplot(igg) +
@@ -437,7 +484,7 @@ ggplot(igg) +
   geom_boxplot()
 ```
 
-![](class19_files/figure-commonmark/unnamed-chunk-22-1.png)
+![](class19_files/figure-commonmark/unnamed-chunk-25-1.png)
 
 We can “facet” our plot by wP vs aP
 
@@ -448,7 +495,10 @@ ggplot(igg) +
   facet_wrap(~infancy_vac)
 ```
 
-![](class19_files/figure-commonmark/unnamed-chunk-23-1.png)
+![](class19_files/figure-commonmark/unnamed-chunk-26-1.png)
+
+> Q13. Complete the following code to make a summary boxplot of Ab titer
+> levels (MFI) for all antigens:
 
 ``` r
 ggplot(igg) +
@@ -462,7 +512,15 @@ ggplot(igg) +
     Warning: Removed 5 rows containing non-finite outside the scale range
     (`stat_boxplot()`).
 
-![](class19_files/figure-commonmark/unnamed-chunk-24-1.png)
+![](class19_files/figure-commonmark/unnamed-chunk-27-1.png)
+
+> Q14. What antigens show differences in the level of IgG antibody
+> titers recognizing them over time? Why these and not others?
+
+PT, PRN, and FHA because for the aP immunization, the effectiveness may
+decrease over time as shown by the decreasing IgG antibody levels.
+Others may not show these differences because these vaccinations might
+not have these antigens.
 
 More advanced analysis digging into individual antigen responses over
 time:
@@ -479,7 +537,7 @@ time:
    geom_vline(xintercept=14, linetype="dashed")
 ```
 
-![](class19_files/figure-commonmark/unnamed-chunk-25-1.png)
+![](class19_files/figure-commonmark/unnamed-chunk-28-1.png)
 
 This plot shows the time course of Pertussis toxin (PT) antibody
 responses for a large set of wP (teal color) and aP (red color)

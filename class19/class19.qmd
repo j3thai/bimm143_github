@@ -144,6 +144,34 @@ ab_titer <- read_json("http://cmi-pb.org/api/v5_1/plasma_ab_titer", simplifyVect
 head(specimen)
 ```
 
+> Q7. Using this approach determine (i) the average age of wP individuals, (ii) the average age of aP individuals; and (iii) are they significantly different?
+
+```{r}
+library(dplyr)
+library(lubridate)
+
+subject$dob <- ymd(subject$year_of_birth)
+subject$age <- today() - subject$dob
+
+
+ap <- subject %>% filter(infancy_vac == "aP")
+round(summary(time_length(ap$age, "years")))
+
+```
+
+```{r}
+wp <- subject %>% filter(infancy_vac == "wP")
+round( summary( time_length( wp$age, "years" ) ) )
+```
+
+> Q8. Determine the age of all individuals at time of boost?
+
+```{r}
+int <- ymd(subject$date_of_boost) - ymd(subject$year_of_birth)
+age_at_boost <- time_length(int, "year")
+head(age_at_boost)
+```
+
 We need to "join" or link these tables with the `subject` table so we can begin to analyze this data and know who a given Ab sample was collected for and when.
 
 > Q9. Complete the code to join specimen and subject tables to make a new merged data frame containing all specimen records along with their associated subject details:
@@ -230,6 +258,8 @@ ggplot(igg) +
   facet_wrap(~infancy_vac)
 ```
 
+> Q13. Complete the following code to make a summary boxplot of Ab titer levels (MFI) for all antigens:
+
 ```{r}
 ggplot(igg) +
   aes(MFI_normalised, antigen, col=infancy_vac ) +
@@ -239,7 +269,9 @@ ggplot(igg) +
   theme_bw()
 ```
 
+> Q14. What antigens show differences in the level of IgG antibody titers recognizing them over time? Why these and not others?
 
+PT, PRN, and FHA because for the aP immunization, the effectiveness may decrease over time as shown by the decreasing IgG antibody levels. Others may not show these differences because these vaccinations might not have these antigens.
 
 
 More advanced analysis digging into individual antigen responses over time:
