@@ -31,4 +31,4 @@ Classwork for [BIMM143 at UC San Diego](https://bioboot.github.io/bimm143_F25/) 
 
 - Class 18 Thanksgiving Holiday
 
-- Class 19 [Invesetigating Pertussis resurgence mini project]()
+- Class 19 [Investigating Pertussis resurgence mini project]()
